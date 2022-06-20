@@ -90,168 +90,168 @@ my $somatic = 1;
 my $allele  = 'COSMIC_MUTATION';
 my $phe_suffix = 'tumour';
 
-if ($force) {
-    $dbVar->do("DROP TABLE IF EXISTS $temp_table;");
-    $dbVar->do("DROP TABLE IF EXISTS $temp_phen_table;");
-    $dbVar->do("DROP TABLE IF EXISTS $temp_varSyn_table;");
-}
+# if ($force) {
+#     $dbVar->do("DROP TABLE IF EXISTS $temp_table;");
+#     $dbVar->do("DROP TABLE IF EXISTS $temp_phen_table;");
+#     $dbVar->do("DROP TABLE IF EXISTS $temp_varSyn_table;");
+# }
+# 
+# warn "Creating $temp_table table...\n";
+#   
+# my @cols = ('name *', 'seq_region_id i*', 'seq_region_start i', 'seq_region_end i', 'class i');
+# create($dbVar, "$temp_table", @cols);
+# $dbVar->do("ALTER TABLE $temp_table ADD PRIMARY KEY (name, seq_region_id, seq_region_start, seq_region_end);");
+# 
+# my @cols_phen = ('name *', 'phenotype_id i*');
+# create($dbVar, "$temp_phen_table", @cols_phen);
+# $dbVar->do("ALTER TABLE $temp_phen_table ADD PRIMARY KEY (name, phenotype_id);");
+# 
+# my @cols_syn = ('name *', 'old_name *');
+# create($dbVar, "$temp_varSyn_table", @cols_syn);
+# $dbVar->do("ALTER TABLE $temp_varSyn_table ADD PRIMARY KEY (name, old_name);");
+# 
+# my $cosmic_ins_stmt = qq{
+#     INSERT IGNORE INTO
+#       $temp_table (
+#         name,
+#         seq_region_id,
+#         seq_region_start,
+#         seq_region_end,
+#         class
+#       )
+#       VALUES (
+#         ?,
+#         ?,
+#         ?,
+#         ?,
+#         ?
+#       )
+# };
+# warn "Preparing $temp_table table...\n";
+# my $cosmic_ins_sth = $dbh->prepare($cosmic_ins_stmt);
+# 
+# my $cosmic_phe_ins_stmt = qq{
+#     INSERT IGNORE INTO
+#       $temp_phen_table (
+#         name,
+#         phenotype_id
+#       )
+#       VALUES (
+#         ?,
+#         ?
+#       )
+# };
+# warn "Preparing $temp_phen_table table...\n";
+# my $cosmic_phe_ins_sth = $dbh->prepare($cosmic_phe_ins_stmt);
+# 
+# my $cosmic_syn_ins_stmt = qq{
+#     INSERT IGNORE INTO
+#       $temp_varSyn_table (
+#         name,
+#         old_name
+#       )
+#       VALUES (
+#         ?,
+#         ?
+#       )
+# };
+# 
+# warn "Preparing $temp_varSyn_table table...\n";
+# my $cosmic_syn_ins_sth = $dbh->prepare($cosmic_syn_ins_stmt);
 
-warn "Creating $temp_table table...\n";
-  
-my @cols = ('name *', 'seq_region_id i*', 'seq_region_start i', 'seq_region_end i', 'class i');
-create($dbVar, "$temp_table", @cols);
-$dbVar->do("ALTER TABLE $temp_table ADD PRIMARY KEY (name, seq_region_id, seq_region_start, seq_region_end);");
+# warn "Getting class attribute ids...\n";
+# my $class_attrib_ids = get_class_attrib_ids();
+# 
+# warn "Getting seq region ids...\n";
+# my $seq_region_ids   = get_seq_region_ids();
+# 
+# warn "Getting phenotype ids...\n";
+# my $phenotype_ids    = get_phenotype_ids();
 
-my @cols_phen = ('name *', 'phenotype_id i*');
-create($dbVar, "$temp_phen_table", @cols_phen);
-$dbVar->do("ALTER TABLE $temp_phen_table ADD PRIMARY KEY (name, phenotype_id);");
+# my %chr_names = ( '23' => 'X',
+#                   '24' => 'Y',
+#                   '25' => 'MT');
 
-my @cols_syn = ('name *', 'old_name *');
-create($dbVar, "$temp_varSyn_table", @cols_syn);
-$dbVar->do("ALTER TABLE $temp_varSyn_table ADD PRIMARY KEY (name, old_name);");
-
-my $cosmic_ins_stmt = qq{
-    INSERT IGNORE INTO
-      $temp_table (
-        name,
-        seq_region_id,
-        seq_region_start,
-        seq_region_end,
-        class
-      )
-      VALUES (
-        ?,
-        ?,
-        ?,
-        ?,
-        ?
-      )
-};
-warn "Preparing $temp_table table...\n";
-my $cosmic_ins_sth = $dbh->prepare($cosmic_ins_stmt);
-
-my $cosmic_phe_ins_stmt = qq{
-    INSERT IGNORE INTO
-      $temp_phen_table (
-        name,
-        phenotype_id
-      )
-      VALUES (
-        ?,
-        ?
-      )
-};
-warn "Preparing $temp_phen_table table...\n";
-my $cosmic_phe_ins_sth = $dbh->prepare($cosmic_phe_ins_stmt);
-
-my $cosmic_syn_ins_stmt = qq{
-    INSERT IGNORE INTO
-      $temp_varSyn_table (
-        name,
-        old_name
-      )
-      VALUES (
-        ?,
-        ?
-      )
-};
-
-warn "Preparing $temp_varSyn_table table...\n";
-my $cosmic_syn_ins_sth = $dbh->prepare($cosmic_syn_ins_stmt);
-
-warn "Getting class attribute ids...\n";
-my $class_attrib_ids = get_class_attrib_ids();
-
-warn "Getting seq region ids...\n";
-my $seq_region_ids   = get_seq_region_ids();
-
-warn "Getting phenotype ids...\n";
-my $phenotype_ids    = get_phenotype_ids();
-
-my %chr_names = ( '23' => 'X',
-                  '24' => 'Y',
-                  '25' => 'MT');
-
-
-if ($infile =~ /gz$/) {
-  open IN, "zcat $infile |" or die ("Could not open $infile for reading");
-}
-else {
-  open(IN,'<',$infile) or die ("Could not open $infile for reading");
-}
-
-my $csvP = Text::CSV->new({ sep_char => ',' });
-
-# Read through the file and parse out the desired fields
-while (<IN>) {
-  chomp;
-  if (!$csvP->parse($_)){
-    warn "WARNING: could not parse line: $_\n";
-    next;
-  }
-  my @line = $csvP->fields();
-
-  # File format (cosmic v95):
-  # 1,100001572,100001572,COSV63379341,COSN6400737,"liver","Substitution - intronic"
-
-  my $chr = shift(@line);
-     $chr = $chr_names{$chr} if ($chr_names{$chr});
-  my $start         = shift(@line);
-  my $end           = shift(@line);
-  my $cosv_id       = shift(@line);
-  my $cosmic_id     = shift(@line);
-  my @phenos        = split(',', shift(@line));
-  my $cosmic_class  = pop(@line);
-  
-  my $class = get_equivalent_class($cosmic_class,$start,$end);
-  
-  my $seq_region_id = $seq_region_ids->{$chr};
-
-  if (!$seq_region_id) {
-    warn "COSMIC $cosmic_id: chromosome '$chr' not found in ensembl. Entry skipped.\n";
-    next;
-  }
-
-  my $class_attrib_id = $class_attrib_ids->{$class};
-  
-  $cosmic_ins_sth->bind_param(1,$cosv_id,SQL_VARCHAR);
-  $cosmic_ins_sth->bind_param(2,$seq_region_id,SQL_INTEGER);
-  if ($class eq 'insertion' ){
-    $cosmic_ins_sth->bind_param(3,$end,SQL_INTEGER);
-    $cosmic_ins_sth->bind_param(4,$start,SQL_INTEGER);
-  } else {
-    $cosmic_ins_sth->bind_param(3,$start,SQL_INTEGER);
-    $cosmic_ins_sth->bind_param(4,$end,SQL_INTEGER);
-  }
-  $cosmic_ins_sth->bind_param(5,$class_attrib_id,SQL_INTEGER);
-  $cosmic_ins_sth->execute();
-
-  if ( $cosmic_id =~ /COSM/ ){
-    $cosmic_syn_ins_sth->bind_param(1,$cosv_id,SQL_VARCHAR);
-    $cosmic_syn_ins_sth->bind_param(2,$cosmic_id,SQL_VARCHAR);
-    $cosmic_syn_ins_sth->execute();
-  }
-  
-  foreach my $phenotype (@phenos) {
-    $phenotype =~ s/_/ /g;
-    $phenotype = ucfirst($phenotype)." $phe_suffix";
-
-    my $phenotype_id = $phenotype_ids->{$phenotype};
-    
-    if (!$phenotype_id) {
-      $phenotype_id = add_phenotype($phenotype);
-      warn "COSMIC $cosmic_id: phenotype '$phenotype' not found in ensembl. Phenotype added.\n";
-    }
-    
-    $cosmic_phe_ins_sth->bind_param(1,$cosv_id,SQL_VARCHAR);
-    $cosmic_phe_ins_sth->bind_param(2,$phenotype_id,SQL_INTEGER);
-    $cosmic_phe_ins_sth->execute();
-  }
-}
-close(IN);
-$cosmic_ins_sth->finish();
-$cosmic_phe_ins_sth->finish();
-$cosmic_syn_ins_sth->finish();
+# 
+# if ($infile =~ /gz$/) {
+#   open IN, "zcat $infile |" or die ("Could not open $infile for reading");
+# }
+# else {
+#   open(IN,'<',$infile) or die ("Could not open $infile for reading");
+# }
+# 
+# my $csvP = Text::CSV->new({ sep_char => ',' });
+# 
+# # Read through the file and parse out the desired fields
+# while (<IN>) {
+#   chomp;
+#   if (!$csvP->parse($_)){
+#     warn "WARNING: could not parse line: $_\n";
+#     next;
+#   }
+#   my @line = $csvP->fields();
+# 
+#   # File format (cosmic v95):
+#   # 1,100001572,100001572,COSV63379341,COSN6400737,"liver","Substitution - intronic"
+# 
+#   my $chr = shift(@line);
+#      $chr = $chr_names{$chr} if ($chr_names{$chr});
+#   my $start         = shift(@line);
+#   my $end           = shift(@line);
+#   my $cosv_id       = shift(@line);
+#   my $cosmic_id     = shift(@line);
+#   my @phenos        = split(',', shift(@line));
+#   my $cosmic_class  = pop(@line);
+#   
+#   my $class = get_equivalent_class($cosmic_class,$start,$end);
+#   
+#   my $seq_region_id = $seq_region_ids->{$chr};
+# 
+#   if (!$seq_region_id) {
+#     warn "COSMIC $cosmic_id: chromosome '$chr' not found in ensembl. Entry skipped.\n";
+#     next;
+#   }
+# 
+#   my $class_attrib_id = $class_attrib_ids->{$class};
+#   
+#   $cosmic_ins_sth->bind_param(1,$cosv_id,SQL_VARCHAR);
+#   $cosmic_ins_sth->bind_param(2,$seq_region_id,SQL_INTEGER);
+#   if ($class eq 'insertion' ){
+#     $cosmic_ins_sth->bind_param(3,$end,SQL_INTEGER);
+#     $cosmic_ins_sth->bind_param(4,$start,SQL_INTEGER);
+#   } else {
+#     $cosmic_ins_sth->bind_param(3,$start,SQL_INTEGER);
+#     $cosmic_ins_sth->bind_param(4,$end,SQL_INTEGER);
+#   }
+#   $cosmic_ins_sth->bind_param(5,$class_attrib_id,SQL_INTEGER);
+#   $cosmic_ins_sth->execute();
+# 
+#   if ( $cosmic_id =~ /COSM/ ){
+#     $cosmic_syn_ins_sth->bind_param(1,$cosv_id,SQL_VARCHAR);
+#     $cosmic_syn_ins_sth->bind_param(2,$cosmic_id,SQL_VARCHAR);
+#     $cosmic_syn_ins_sth->execute();
+#   }
+#   
+#   foreach my $phenotype (@phenos) {
+#     $phenotype =~ s/_/ /g;
+#     $phenotype = ucfirst($phenotype)." $phe_suffix";
+# 
+#     my $phenotype_id = $phenotype_ids->{$phenotype};
+#     
+#     if (!$phenotype_id) {
+#       $phenotype_id = add_phenotype($phenotype);
+#       warn "COSMIC $cosmic_id: phenotype '$phenotype' not found in ensembl. Phenotype added.\n";
+#     }
+#     
+#     $cosmic_phe_ins_sth->bind_param(1,$cosv_id,SQL_VARCHAR);
+#     $cosmic_phe_ins_sth->bind_param(2,$phenotype_id,SQL_INTEGER);
+#     $cosmic_phe_ins_sth->execute();
+#   }
+# }
+# close(IN);
+# $cosmic_ins_sth->finish();
+# $cosmic_phe_ins_sth->finish();
+# $cosmic_syn_ins_sth->finish();
 
 warn "Inserting COSMIC entries...\n";
 # Insert COSMIC in the latest release which are not in COSMIC 71
