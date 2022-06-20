@@ -164,9 +164,9 @@ my $phe_suffix = 'tumour';
 # 
 # warn "Getting seq region ids...\n";
 # my $seq_region_ids   = get_seq_region_ids();
-# 
-# warn "Getting phenotype ids...\n";
-# my $phenotype_ids    = get_phenotype_ids();
+
+warn "Getting phenotype ids...\n";
+my $phenotype_ids    = get_phenotype_ids();
 
 # my %chr_names = ( '23' => 'X',
 #                   '24' => 'Y',
