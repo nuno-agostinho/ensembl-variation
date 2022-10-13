@@ -113,6 +113,7 @@ sub run {
             -translation_md5    => $translation_md5,
         );
 
+        my $results_available = 0;
         while (<RESULT>) {
             if (/^#/) {
                 s/#//g;
@@ -138,6 +139,7 @@ sub run {
             my $position    = $results{o_pos};
 
             next unless $position && $alt_aa;
+            $results_available = 1;
 
             $pred_matrix->add_prediction(
                 $position,
@@ -147,9 +149,9 @@ sub run {
             );
         }
 
-        # save the predictions to the database
+        # save the predictions to the database if the matrix is not null
 
-        $pfpma->store($pred_matrix);
+        $pfpma->store($pred_matrix) if $results_available;
     }
 
     remove_tree($tmp_dir);
