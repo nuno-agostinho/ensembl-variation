@@ -62,10 +62,9 @@ sub default_options {
         hive_debug_init => 1,
         debug_mode => 0,
 
-        # the location of your ensembl checkout, the hive looks here for SQL files etc.
-
-        ensembl_cvs_root_dir    => $ENV{'HOME'} . '/src',
-        hive_root_dir           => $ENV{'HOME'} . '/src/ensembl-hive',
+        # the location of your checkout of the ensembl API (the hive looks for SQL files here)
+        ensembl_cvs_root_dir    => $ENV{'ENSEMBL_ROOT_DIR'} || $self->o('ensembl_cvs_root_dir'),
+        hive_root_dir           => $self->o('ensembl_cvs_root_dir') . '/ensembl-hive',
         
         pipeline_name           => 'protein_function',
         pipeline_dir            => '/hps/nobackup/production/ensembl/'.$ENV{USER}.'/'.$self->o('pipeline_name'),

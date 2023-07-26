@@ -75,9 +75,8 @@ sub default_options {
         retry_throwing_job      => 0,  
 
         # the location of your checkout of the ensembl API (the hive looks for SQL files here)
-        
-        ensembl_cvs_root_dir    => $ENV{'HOME'}.'/bin/',
-        hive_root_dir           => $ENV{'HOME'}.'/bin/ensembl-hive', 
+        ensembl_cvs_root_dir    => $ENV{'ENSEMBL_ROOT_DIR'} || $self->o('ensembl_cvs_root_dir'),
+        hive_root_dir           => $self->o('ensembl_cvs_root_dir') . '/ensembl-hive',
 
         # a name for your pipeline (will also be used in the name of the hive database)
         

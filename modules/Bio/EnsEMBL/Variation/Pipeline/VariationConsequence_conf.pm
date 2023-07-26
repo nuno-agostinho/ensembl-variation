@@ -61,10 +61,11 @@ sub default_options {
         hive_use_triggers => 0,
         hive_auto_rebalance_semaphores => 0, 
         hive_no_init => 0,
+
         # the location of your checkout of the ensembl API (the hive looks for SQL files here)
-        
-        ensembl_cvs_root_dir    => '/hps/software/users/ensembl/repositories/'. $login . '/src',
-        hive_root_dir           => '/hps/software/users/ensembl/repositories/'. $login . '/src/ensembl-hive', 
+        ensembl_cvs_root_dir    => $ENV{'ENSEMBL_ROOT_DIR'} || $self->o('ensembl_cvs_root_dir'),
+        hive_root_dir           => $self->o('ensembl_cvs_root_dir') . '/ensembl-hive',
+
         # a name for your pipeline (will also be used in the name of the hive database)
         
         pipeline_name           => 'variation_consequence',

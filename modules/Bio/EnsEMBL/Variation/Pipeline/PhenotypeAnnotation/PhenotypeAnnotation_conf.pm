@@ -69,7 +69,7 @@ sub default_options {
         debug_mode   => 0,
 
         # the location of your checkout of the ensembl API (the hive looks for SQL files here)
-
+        ensembl_cvs_root_dir    => $ENV{'ENSEMBL_ROOT_DIR'} || $self->o('ensembl_cvs_root_dir'),
         hive_root_dir           => $self->o('ensembl_cvs_root_dir') . '/ensembl-hive',
 
         # release number used in the name of default workdir and hive database

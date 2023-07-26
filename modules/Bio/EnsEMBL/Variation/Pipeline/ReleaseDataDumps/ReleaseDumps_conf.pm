@@ -69,7 +69,9 @@ sub default_options {
         pipeline_dir       => $self->o('pipeline_dir'),
         
         ensembl_registry   => $self->o('ensembl_registry'),
-
+        
+        # the location of your checkout of the ensembl API (the hive looks for SQL files here)
+        ensembl_cvs_root_dir => $ENV{'ENSEMBL_ROOT_DIR'} || $self->o('ensembl_cvs_root_dir'),
         hive_root_dir        => $self->o('ensembl_cvs_root_dir') . '/ensembl-hive',
         script_dir           => $self->o('ensembl_cvs_root_dir') . '/ensembl-variation/scripts',
 

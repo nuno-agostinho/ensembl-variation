@@ -46,7 +46,11 @@ sub default_options {
         hive_use_triggers       => 0,
         hive_auto_rebalance_semaphores => 0,  # do not attempt to rebalance semaphores periodically by default
         hive_no_init            => 0, # setting it to 1 will skip pipeline_create_commands (useful for topping up)
+        
+        # the location of your checkout of the ensembl API (the hive looks for SQL files here)
+        ensembl_cvs_root_dir    => $ENV{'ENSEMBL_ROOT_DIR'} || $self->o('ensembl_cvs_root_dir'),
         hive_root_dir           => $self->o('ensembl_cvs_root_dir') . '/ensembl-hive',
+
         debug                   => 0,
         run_variant_qc          => 1,
         use_fasta_files         => 0,
