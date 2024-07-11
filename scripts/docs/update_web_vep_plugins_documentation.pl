@@ -480,7 +480,7 @@ sub read_plugin_file {
   $desc =~ s|(doi:([^\s]+[A-Za-z0-9]))|<a rel="external" href="https://doi.org/$2">$1</a>|g;
 
   # Convert pair of single quotes to code
-  $desc =~ s|[\'\`]([\w:\-?\/_\.\|\&\,\;\=\]\[]*)[\'\`]|<kbd>$1</kbd>|g;
+  $desc =~ s|[\'\`](\S+)[\'\`]|<kbd>$1</kbd>|g;
 
   # Add usage examples
   $desc .= '<p>' . $usage . '</p>';
